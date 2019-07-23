@@ -15,7 +15,7 @@ def list_call():
             i.state['Name'],
             i.public_dns_name)))
 
-    
+    return
 
 if __name__ == '__main__':
     list_call()
