@@ -9,3 +9,5 @@ shotty uses configuration file created by AWS cli
 ##Running
 
 `pipenv run "python shotty/shotty.py" `
+
+##testing for key
