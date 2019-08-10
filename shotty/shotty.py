@@ -15,6 +15,11 @@ def filter_instances(project):
 
     return instances
 
+def has_pending_snapshot(volume):
+    snapshots = list(volume.snapshots.all())
+    return snapshots and snapshots[0].state == "pending"
+
+
 @click.group()
 def cli():
     """Commands for Command line interface"""
@@ -27,7 +32,9 @@ def snapshots():
 
 @click.option('--project', default=None,
     help="Only snapshots for project (tag proj:<name>)")
-def snapshots_call(project):
+@click.option('--all', 'list_all', default=False, is_flag=True,
+        help="list all snapshots for each volume")
+def snapshots_call(project, list_all):
     "List EC2 instances' volumes' snapshots"
     instances = filter_instances(project)
     for i in instances:
@@ -41,6 +48,8 @@ def snapshots_call(project):
                     s.progress,
                     s.start_time.strftime('%c')
                 )))
+
+                if s.state == "completed" and not list_all: break
 
     return
 
@@ -86,6 +95,9 @@ def create_snapshots(project):
         i.wait_until_stopped()
 
         for v in i.volumes.all():
+            if has_pending_snapshot(v):
+                print("Skipping, since volume snapshot for {} already in progress".format(v.id))
+                continue
             print("Creating snapshots for in volumes {}".format(v.id))
             v.create_snapshot(Description="Created by my program to create CLI")
 
